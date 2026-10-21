@@ -653,7 +653,7 @@ int pin_bpf_map(struct bpf_object* obj, const char* pin_dir, const char* map_nam
     }
 
     char full_path[255];
-    snprintf(full_path, sizeof(full_path), "%s/%s", XDP_MAP_PIN_DIR, map_name);
+    snprintf(full_path, sizeof(full_path), "%s/%s", pin_dir, map_name);
 
     return bpf_map__pin(map, full_path);
 }
@@ -677,7 +677,7 @@ int unpin_bpf_map(struct bpf_object* obj, const char* pin_dir, const char* map_n
     }
 
     char full_path[255];
-    snprintf(full_path, sizeof(full_path), "%s/%s", XDP_MAP_PIN_DIR, map_name);
+    snprintf(full_path, sizeof(full_path), "%s/%s", pin_dir, map_name);
 
     return bpf_map__unpin(map, full_path);
 }
