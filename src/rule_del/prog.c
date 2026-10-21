@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         printf("Using filters mode (0)...\n");
 
         // Check index.
-        if (cli.idx < 1)
+        if (cli.idx < 1 || cli.idx > MAX_FILTERS || !cfg.filters[cli.idx - 1].set)
         {
             fprintf(stderr, "Invalid filter index. Index must start from 1.\n");
 
@@ -89,50 +89,18 @@ int main(int argc, char *argv[])
 
         printf("Using 'map_filters' FD => %d...\n", map_filters);
 
-        int idx = -1;
         int cfg_idx = cli.idx - 1;
-        int cur_idx = 0;
-
-        // This is where things are a bit tricky due to the layout of our filtering system in XDP.
-        // Since each filter rule doesn't have any unique identifier other than the index, we need to use that.
-        // However, rules that are not enabled are not inserted into the BPF map which can mismatch the indexes in the config and XDP program.
-        // So we need to loop through each and ignore disabled rules.
-        for (int i = 0; i < MAX_FILTERS; i++)
-        {
-            filter_rule_cfg_t* filter = &cfg.filters[i];
-
-            if (!filter->set || !filter->enabled)
-            {
-                continue;
-            }
-
-            if (i == cur_idx)
-            {
-                idx = cur_idx;
-
-                break;
-            }
-
-            cur_idx++;
-        }
-
-        if (idx < 0)
-        {
-            fprintf(stderr, "[ERROR] Failed to find proper index in config file (%d).\n", idx);
-
-            return EXIT_FAILURE;
-        }
-
-        // Unset affected filter in config.
-        if (cli.save)
-        {
-            cfg.filters[cfg_idx].set = 0;
-        }
+        // Always remove from the in-memory config; --save only controls disk IO.
+        // update_filters() handles compaction around disabled/unset rules.
+        cfg.filters[cfg_idx].set = 0;
 
         // Update filters.
         fprintf(stdout, "Updating filters...\n");
 
-        update_filters(map_filters, &cfg);
+        if (update_filters(map_filters, &cfg) != 0)
+        {
+            return EXIT_FAILURE;
+        }
     }
     // Handle IPv4 range drop mode.
     else if (cli.mode == 1)
