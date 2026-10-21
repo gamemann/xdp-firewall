@@ -49,23 +49,39 @@ ip_range_t parse_ip_range(const char *ip)
     ret.cidr = 32;
 
     char ip_copy[INET_ADDRSTRLEN + 3];
-    strncpy(ip_copy, ip, sizeof(ip_copy) - 1);
-    ip_copy[sizeof(ip_copy) - 1] = '\0';
-
-    char *token = strtok(ip_copy, "/");
-
-    if (token)
+    if (!ip || strlen(ip) >= sizeof(ip_copy))
     {
-        ret.ip = inet_addr(token);
+        return ret;
+    }
+    strcpy(ip_copy, ip);
 
-        token = strtok(NULL, "/");
-
-        if (token)
+    char *prefix = strchr(ip_copy, '/');
+    if (prefix)
+    {
+        *prefix++ = '\0';
+        if (!isdigit((unsigned char)*prefix))
         {
-            ret.cidr = (u8) strtoul(token, NULL, 10);
+            return ret;
         }
+        char *end;
+        errno = 0;
+        unsigned long cidr = strtoul(prefix, &end, 10);
+
+        if (errno || end == prefix || *end != '\0' || cidr > 32)
+        {
+            return ret;
+        }
+        ret.cidr = cidr;
     }
 
+    struct in_addr addr;
+    if (inet_pton(AF_INET, ip_copy, &addr) != 1)
+    {
+        return ret;
+    }
+
+    ret.ip = addr.s_addr;
+    ret.success = 1;
     return ret;
 }
 

@@ -296,6 +296,10 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
     if (filter_cfg->ip.src_ip)
     {
         ip_range_t ip_range = parse_ip_range(filter_cfg->ip.src_ip);
+        if (!ip_range.success)
+        {
+            return -1;
+        }
 
         filter.ip.src_ip = ip_range.ip;
         filter.ip.src_cidr = ip_range.cidr;
@@ -304,6 +308,10 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
     if (filter_cfg->ip.dst_ip)
     {
         ip_range_t ip_range = parse_ip_range(filter_cfg->ip.dst_ip);
+        if (!ip_range.success)
+        {
+            return -1;
+        }
 
         filter.ip.dst_ip = ip_range.ip;
         filter.ip.dst_cidr = ip_range.cidr;
@@ -727,6 +735,11 @@ void update_range_drops(int map_range_drop, config__t* cfg)
 
         // Parse IP range string and return network IP and CIDR.
         ip_range_t t = parse_ip_range(range);
+        if (!t.success)
+        {
+            fprintf(stderr, "[WARNING] Invalid IP drop range: %s\n", range);
+            continue;
+        }
 
         add_range_drop(map_range_drop, t.ip, t.cidr);
     }

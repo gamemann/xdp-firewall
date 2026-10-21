@@ -393,6 +393,11 @@ int main(int argc, char *argv[])
 
         // Parse IP range.
         ip_range_t range = parse_ip_range(cli.ip);
+        if (!range.success)
+        {
+            fprintf(stderr, "Invalid IPv4 range: %s\n", cli.ip);
+            return EXIT_FAILURE;
+        }
 
         // Attempt to add range.
         if ((ret = add_range_drop(map_range_drop, range.ip, range.cidr)) != 0)
