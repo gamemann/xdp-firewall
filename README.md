@@ -105,7 +105,7 @@ make libxdp
 
 # Install LibXDP & LibBPF onto your system.
 # Warning: This command must be executed as root! `sudo` should do this for you if you have it installed and have privileges.
-sudo libxdp_install
+sudo make libxdp_install
 
 # Build the firewall tool.
 make
