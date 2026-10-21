@@ -11,6 +11,14 @@
  */
 static __always_inline int is_ip_in_range(u32 src_ip, u32 net_ip, u8 cidr)
 {
+    if (cidr == 0)
+    {
+        return 1;
+    }
+    if (cidr > 32)
+    {
+        return 0;
+    }
     return !((src_ip ^ net_ip) & htonl(0xFFFFFFFFu << (32 - cidr)));
 }
 
