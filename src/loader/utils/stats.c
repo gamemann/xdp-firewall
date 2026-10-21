@@ -70,9 +70,9 @@ int calc_stats(int map_stats, int cpus, int per_second)
         last_update_time = now;
     }
 
-    char allowed_str[12];
-    char dropped_str[12];
-    char passed_str[12];
+    char allowed_str[32];
+    char dropped_str[32];
+    char passed_str[32];
 
     if (per_second)
     {
