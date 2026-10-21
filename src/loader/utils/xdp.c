@@ -378,6 +378,10 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
     }
 
     port_range_t tcp_src_port_range = parse_port_range(filter_cfg->tcp.sport);
+    if (filter_cfg->tcp.sport && !tcp_src_port_range.success)
+    {
+        return -1;
+    }
 
     if (tcp_src_port_range.success)
     {
@@ -389,6 +393,10 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
     }
 
     port_range_t tcp_dst_port_range = parse_port_range(filter_cfg->tcp.dport);
+    if (filter_cfg->tcp.dport && !tcp_dst_port_range.success)
+    {
+        return -1;
+    }
 
     if (tcp_dst_port_range.success)
     {
@@ -461,6 +469,10 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
     }
 
     port_range_t udp_src_port_range = parse_port_range(filter_cfg->udp.sport);
+    if (filter_cfg->udp.sport && !udp_src_port_range.success)
+    {
+        return -1;
+    }
 
     if (udp_src_port_range.success)
     {
@@ -472,6 +484,10 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
     }
 
     port_range_t udp_dst_port_range = parse_port_range(filter_cfg->udp.dport);
+    if (filter_cfg->udp.dport && !udp_dst_port_range.success)
+    {
+        return -1;
+    }
 
     if (udp_dst_port_range.success)
     {

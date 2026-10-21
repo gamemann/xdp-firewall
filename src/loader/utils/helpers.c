@@ -157,8 +157,11 @@ port_range_t parse_port_range(const char* range_str)
 
     // Copy range string.
     char range_str_copy[24];
-    strncpy(range_str_copy, range_str, sizeof(range_str_copy) - 1);
-    range_str_copy[sizeof(range_str_copy) - 1] = '\0';
+    if (strlen(range_str) >= sizeof(range_str_copy))
+    {
+        return ret;
+    }
+    strcpy(range_str_copy, range_str);
 
     // First scan for port ranges with ":".
     char* start = range_str_copy;
@@ -177,27 +180,38 @@ port_range_t parse_port_range(const char* range_str)
 
     char *end_ptr = NULL;
 
-    ret.min = strtol(start, &end_ptr, 10);
+    errno = 0;
+    long min = strtol(start, &end_ptr, 10);
+    char *digits_end = end_ptr;
+    while (isspace((unsigned char)*end_ptr))
+    {
+        end_ptr++;
+    }
 
-    if (end_ptr == start || (*end_ptr != '\0' && !isspace((unsigned char)*end_ptr)))
+    if (errno || digits_end == start || *end_ptr != '\0' || min < 0 || min > 65535)
     {
         return ret;
     }
 
+    long max = min;
     if (end)
     {
-        ret.max = strtol(end, &end_ptr, 10);
+        errno = 0;
+        max = strtol(end, &end_ptr, 10);
+        digits_end = end_ptr;
+        while (isspace((unsigned char)*end_ptr))
+        {
+            end_ptr++;
+        }
 
-        if (end_ptr == end || (*end_ptr != '\0' && !isspace((unsigned char)*end_ptr)))
+        if (errno || digits_end == end || *end_ptr != '\0' || max < min || max > 65535)
         {
             return ret;
         }
     }
-    else
-    {
-        ret.max = ret.min;
-    }
 
+    ret.min = min;
+    ret.max = max;
     ret.success = 1;
 
     return ret;
