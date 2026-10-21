@@ -301,6 +301,7 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
             return -1;
         }
 
+        filter.ip.do_src_ip = 1;
         filter.ip.src_ip = ip_range.ip;
         filter.ip.src_cidr = ip_range.cidr;
     }
@@ -313,6 +314,7 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
             return -1;
         }
 
+        filter.ip.do_dst_ip = 1;
         filter.ip.dst_ip = ip_range.ip;
         filter.ip.dst_cidr = ip_range.cidr;
     }
@@ -326,6 +328,7 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
         {
             return -1;
         }
+        filter.ip.do_src_ip6 = 1;
         memcpy(filter.ip.src_ip6, &in, sizeof(filter.ip.src_ip6));
     }
 
@@ -337,6 +340,7 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
         {
             return -1;
         }
+        filter.ip.do_dst_ip6 = 1;
         memcpy(filter.ip.dst_ip6, &in, sizeof(filter.ip.dst_ip6));
     }
 #endif

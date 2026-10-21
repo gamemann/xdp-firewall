@@ -115,6 +115,11 @@ make
 sudo make install
 ```
 
+**Upgrade note:** rebuild and deploy the loader, rule tools, and XDP object
+together. The filter map layout includes explicit address-match flags, so existing
+pinned filter maps from older builds are not compatible. Restart the firewall
+with the new object rather than updating an old process's maps with new tools.
+
 ## 💻 CLI Usage
 The following command line arguments are supported when running the firewall.
 

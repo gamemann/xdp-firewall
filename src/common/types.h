@@ -4,6 +4,8 @@
 
 struct filter_ip
 {
+    unsigned int do_src_ip : 1;
+    unsigned int do_dst_ip : 1;
     u32 src_ip;
     u8 src_cidr;
 
@@ -11,6 +13,8 @@ struct filter_ip
     u8 dst_cidr;
 
 #ifdef ENABLE_IPV6
+    unsigned int do_src_ip6 : 1;
+    unsigned int do_dst_ip6 : 1;
     u32 src_ip6[4];
     u32 dst_ip6[4];
 #endif
