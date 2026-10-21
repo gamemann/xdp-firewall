@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 LIBXDP=0
 INSTALL=1
 CLEAN=0
