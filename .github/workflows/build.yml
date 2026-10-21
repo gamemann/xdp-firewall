@@ -30,5 +30,7 @@ jobs:
       run: sudo make libxdp_install
     - name: Make project
       run: make
+    - name: Run rootless regression tests
+      run: make test
     - name: Install project
       run: sudo make install
