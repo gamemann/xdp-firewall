@@ -134,9 +134,27 @@ int hdl_filters_rb_event(void* ctx, void* data, size_t sz)
     config__t* cfg = (config__t*)ctx;
     filter_log_event_t* e = (filter_log_event_t*)data;
 
-    filter_rule_cfg_t* filter = &cfg->filters[e->filter_id];
-
-    if (filter == NULL)
+    if (sz < sizeof(*e) || e->filter_id < 0 || e->filter_id >= MAX_FILTERS)
+    {
+        return 1;
+    }
+    // Event IDs are compacted BPF keys, not config array indexes.
+    filter_rule_cfg_t* filter = NULL;
+    int key = 0;
+    int cfg_idx = 0;
+    for (; cfg_idx < MAX_FILTERS; cfg_idx++)
+    {
+        if (!cfg->filters[cfg_idx].set || !cfg->filters[cfg_idx].enabled)
+        {
+            continue;
+        }
+        if (key++ == e->filter_id)
+        {
+            filter = &cfg->filters[cfg_idx];
+            break;
+        }
+    }
+    if (!filter)
     {
         return 1;
     }
@@ -164,7 +182,7 @@ int hdl_filters_rb_event(void* ctx, void* data, size_t sz)
 
     const char* protocol_str = get_protocol_str_by_id(e->protocol);
 
-    log_msg(cfg, 0, 0, "[FILTER %d] %s %s packet '%s:%d' => '%s:%d' (IP PPS => %llu, IP BPS => %llu, Flow PPS => %llu, Flow BPS => %llu Filter Block Time => %llu, length => %d)...", e->filter_id + 1, action, protocol_str, src_ip_str, htons(e->src_port), dst_ip_str, htons(e->dst_port), e->ip_pps, e->ip_bps, e->flow_pps, e->flow_bps, filter->block_time, e->length);
+    log_msg(cfg, 0, 0, "[FILTER %d] %s %s packet '%s:%d' => '%s:%d' (IP PPS => %llu, IP BPS => %llu, Flow PPS => %llu, Flow BPS => %llu Filter Block Time => %d, length => %d)...", cfg_idx + 1, action, protocol_str, src_ip_str, ntohs(e->src_port), dst_ip_str, ntohs(e->dst_port), e->ip_pps, e->ip_bps, e->flow_pps, e->flow_bps, filter->block_time, e->length);
 
     return 0;
 }
