@@ -90,14 +90,6 @@ int xdp_prog_main(struct xdp_md *ctx)
     }
 #endif
     
-    // We only want to process TCP, UDP, and ICMP protocols.
-    if ((iph && iph->protocol != IPPROTO_UDP && iph->protocol != IPPROTO_TCP && iph->protocol != IPPROTO_ICMP) || (iph6 && iph6->nexthdr != IPPROTO_UDP && iph6->nexthdr != IPPROTO_TCP && iph6->nexthdr != IPPROTO_ICMPV6))
-    {
-        inc_pkt_stats(stats, STATS_TYPE_PASSED);
-
-        return XDP_PASS;
-    }
-
     // Retrieve nanoseconds since system boot as timestamp.
     u64 now = bpf_ktime_get_ns();
 
@@ -155,6 +147,13 @@ int xdp_prog_main(struct xdp_md *ctx)
 #endif
 
 #ifdef ENABLE_FILTERS
+    // Block lists apply to all IP protocols; dynamic filters parse only these.
+    if ((iph && iph->protocol != IPPROTO_UDP && iph->protocol != IPPROTO_TCP && iph->protocol != IPPROTO_ICMP) || (iph6 && iph6->nexthdr != IPPROTO_UDP && iph6->nexthdr != IPPROTO_TCP && iph6->nexthdr != IPPROTO_ICMPV6))
+    {
+        inc_pkt_stats(stats, STATS_TYPE_PASSED);
+        return XDP_PASS;
+    }
+
     // Retrieve total packet length.
     u16 pkt_len = data_end - data;
 
