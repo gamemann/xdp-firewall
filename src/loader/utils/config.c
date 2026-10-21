@@ -893,11 +893,8 @@ int save_cfg(config__t* cfg, const char* file_path)
     config_setting_set_int(setting, cfg->verbose);
 
     // Add log file.
-    if (cfg->log_file)
-    {
-        setting = config_setting_add(root, "log_file", CONFIG_TYPE_STRING);
-        config_setting_set_string(setting, cfg->log_file);
-    }
+    setting = config_setting_add(root, "log_file", CONFIG_TYPE_STRING);
+    config_setting_set_string(setting, cfg->log_file ? cfg->log_file : "");
 
     // Add interface(s).
     if (cfg->interfaces_cnt > 0)
