@@ -427,8 +427,6 @@ int main(int argc, char *argv[])
     time_t last_update_check = time(NULL);
     time_t last_config_check = time(NULL);
 
-    unsigned int sleep_time = cfg.stdout_update_time * 1000;
-
     struct stat conf_stat;
 
     // Check if we're doing stats.
@@ -506,7 +504,7 @@ int main(int argc, char *argv[])
         poll_filters_rb(rb);
 #endif
 
-        usleep(sleep_time);
+        usleep((unsigned int)cfg.stdout_update_time * 1000);
     }
 
     fprintf(stdout, "\n");
