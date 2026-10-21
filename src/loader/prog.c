@@ -314,7 +314,8 @@ int main(int argc, char *argv[])
     log_msg(&cfg, 3, 0, "map_stats FD => %d.", map_stats);
 
     // Pin BPF maps to file system if we need to.
-    if (cfg.pin_maps)
+    const int pin_maps = cfg.pin_maps;
+    if (pin_maps)
     {
         log_msg(&cfg, 2, 0, "Pinning BPF maps...");
 
@@ -536,7 +537,7 @@ int main(int argc, char *argv[])
     }
 
     // Unpin maps from file system.
-    if (cfg.pin_maps)
+    if (pin_maps)
     {
         log_msg(&cfg, 2, 0, "Un-pinning BPF maps from file system...");
 
