@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
             idx = get_next_filter_idx(&cfg);
         }
 
-        if (idx < 0)
+        if (idx < 0 || idx >= MAX_FILTERS)
         {
             fprintf(stderr, "Failed to retrieve filter next. Make sure you haven't exceeded the maximum filters allowed (%d).\n", MAX_FILTERS);
 
@@ -364,12 +364,20 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Invalid filter address, port, or scalar value.\n");
             return EXIT_FAILURE;
         }
+        set_filter_defaults(&cfg.filters[idx]);
         cfg.filters[idx] = new_filter;
+        if (cfg.filters_cnt <= idx)
+        {
+            cfg.filters_cnt = idx + 1;
+        }
 
         // Update filters.
         fprintf(stdout, "Updating filters (index %d)...\n", idx);
 
-        update_filters(map_filters, &cfg);
+        if (update_filters(map_filters, &cfg) != 0)
+        {
+            return EXIT_FAILURE;
+        }
     }
     // Handle IPv4 range drop mode.
     else if (cli.mode == 1)
