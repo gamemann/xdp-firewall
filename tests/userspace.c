@@ -99,7 +99,7 @@ static void write_config(const char *path, const char *data)
 static void test_config(void)
 {
     config__t cfg = {0};
-    char path[] = "/tmp/opencode/xdpfw-test-XXXXXX";
+    char path[] = P_tmpdir "/xdpfw-test-XXXXXX";
     int fd = mkstemp(path);
     assert(fd >= 0);
     close(fd);
