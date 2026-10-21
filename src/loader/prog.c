@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
         // Get interface index.
         if_idx[i] = if_nametoindex(interface);
     
-        if (if_idx[i] < 0)
+        if (if_idx[i] == 0)
         {
             log_msg(&cfg, 0, 1, "[WARNING] Failed to retrieve index of network interface '%s'.\n", interface);
     
@@ -232,6 +232,7 @@ int main(int argc, char *argv[])
         if ((ret = attach_xdp(prog, &mode_used, if_idx[i], 0, cli.skb, cli.offload)) != 0)
         {
             log_msg(&cfg, 0, 1, "[WARNING] Failed to attach XDP program to interface '%s' using available modes (%d).\n", interface, ret);
+            if_idx[i] = 0;
 
             continue;
         }
@@ -521,9 +522,7 @@ int main(int argc, char *argv[])
     // Detach XDP program from interfaces.
     for (int i = 0; i < MAX_INTERFACES; i++)
     {
-        const char* interface = cfg.interfaces[i];
-    
-        if (!interface)
+        if (if_idx[i] == 0)
         {
             continue;
         }
@@ -532,7 +531,7 @@ int main(int argc, char *argv[])
 
         if (attach_xdp(prog, &mode_used, if_idx[i], 1, cli.skb, cli.offload))
         {
-            log_msg(&cfg, 0, 0, "[WARNING] Failed to detach XDP program from interface '%s'.\n", interface);
+            log_msg(&cfg, 0, 0, "[WARNING] Failed to detach XDP program from interface index %d.\n", if_idx[i]);
         }
     }
 

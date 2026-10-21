@@ -111,8 +111,6 @@ struct bpf_object* get_bpf_obj(struct xdp_program* prog)
  */
 int attach_xdp(struct xdp_program *prog, char** mode, int ifidx, int detach, int force_skb, int force_offload)
 {
-    int err;
-
     // Before attaching, set chaining options.
     xdp_program__set_run_prio(prog, XDP_MULTIPROG_PRIORITY);
     xdp_program__set_chain_call_enabled(prog, XDP_MULTIPROG_ACTION, XDP_MULTIPROG_ENABLED);
