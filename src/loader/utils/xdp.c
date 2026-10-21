@@ -322,18 +322,22 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
     {
         struct in6_addr in;
 
-        inet_pton(AF_INET6, filter_cfg->ip.src_ip6, &in);
-
-        memcpy(filter.ip.src_ip6, in.__in6_u.__u6_addr32, 4);
+        if (inet_pton(AF_INET6, filter_cfg->ip.src_ip6, &in) != 1)
+        {
+            return -1;
+        }
+        memcpy(filter.ip.src_ip6, &in, sizeof(filter.ip.src_ip6));
     }
 
     if (filter_cfg->ip.dst_ip6)
     {
         struct in6_addr in;
 
-        inet_pton(AF_INET6, filter_cfg->ip.dst_ip6, &in);
-
-        memcpy(filter.ip.dst_ip6, in.__in6_u.__u6_addr32, 4);
+        if (inet_pton(AF_INET6, filter_cfg->ip.dst_ip6, &in) != 1)
+        {
+            return -1;
+        }
+        memcpy(filter.ip.dst_ip6, &in, sizeof(filter.ip.dst_ip6));
     }
 #endif
 
