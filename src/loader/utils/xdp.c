@@ -230,7 +230,7 @@ void delete_filters(int map_filters)
  * 
  * @return 0 on success or error value of bpf_map_update_elem().
  */
-int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
+static int update_filter_cpus(int map_filters, filter_rule_cfg_t* filter_cfg, int idx, filter_t *filter_cpus, int cpus)
 {
     if (validate_filter(filter_cfg) != 0)
     {
@@ -531,15 +531,29 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
         filter.icmp.type = filter_cfg->icmp.type;
     }
 
-    filter_t filter_cpus[MAX_CPUS];
-    memset(filter_cpus, 0, sizeof(filter_cpus));
-
-    for (int j = 0; j < MAX_CPUS; j++)
+    for (int j = 0; j < cpus; j++)
     {
         filter_cpus[j] = filter;
     }
 
-    return bpf_map_update_elem(map_filters, &idx, &filter_cpus, BPF_ANY);
+    return bpf_map_update_elem(map_filters, &idx, filter_cpus, BPF_ANY);
+}
+
+int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
+{
+    int cpus = libbpf_num_possible_cpus();
+    if (cpus < 1 || idx < 0 || idx >= MAX_FILTERS)
+    {
+        return -1;
+    }
+    filter_t *values = calloc(cpus, sizeof(*values));
+    if (!values)
+    {
+        return -1;
+    }
+    int ret = update_filter_cpus(map_filters, filter_cfg, idx, values, cpus);
+    free(values);
+    return ret;
 }
 
 /**
