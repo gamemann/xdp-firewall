@@ -203,7 +203,20 @@ int attach_xdp(struct xdp_program *prog, char** mode, int ifidx, int detach, int
  */
 int delete_filter(int map_filters, u32 idx)
 {
-    return bpf_map_delete_elem(map_filters, &idx);
+    int cpus = libbpf_num_possible_cpus();
+    if (cpus < 1)
+    {
+        return -1;
+    }
+    filter_t *empty = calloc(cpus, sizeof(*empty));
+    if (!empty)
+    {
+        return -1;
+    }
+    // Array maps cannot delete elements; an unset value terminates matching.
+    int ret = bpf_map_update_elem(map_filters, &idx, empty, BPF_ANY);
+    free(empty);
+    return ret;
 }
 
 /**
@@ -545,6 +558,10 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
     if (cpus < 1 || idx < 0 || idx >= MAX_FILTERS)
     {
         return -1;
+    }
+    if (!filter_cfg->set || !filter_cfg->enabled)
+    {
+        return delete_filter(map_filters, idx);
     }
     filter_t *values = calloc(cpus, sizeof(*values));
     if (!values)
