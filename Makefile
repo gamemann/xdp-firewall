@@ -129,6 +129,17 @@ endif
 # All chains.
 all: loader xdp rule_add rule_del
 
+# Rootless regression tests with mocked BPF maps/helpers.
+TEST_FLAGS ?= -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer
+TEST_INCS = -I $(SRC_DIR) -I $(XDP_TOOLS_HEADERS) -I $(LIBBPF_SRC)
+
+test:
+	mkdir -p $(BUILD_DIR)/tests
+	$(CC) $(TEST_INCS) $(TEST_FLAGS) -D__LIBXDP_STATIC__ -ffunction-sections -fdata-sections -Wl,--gc-sections -o $(BUILD_DIR)/tests/userspace tests/userspace.c $(LOADER_UTILS_DIR)/config.c $(LOADER_UTILS_DIR)/helpers.c $(LOADER_UTILS_DIR)/xdp.c $(LOADER_UTILS_DIR)/stats.c $(LOADER_UTILS_DIR)/logging.c -lconfig
+	$(BUILD_DIR)/tests/userspace
+	$(CC) $(TEST_INCS) $(TEST_FLAGS) -D__LIBXDP_STATIC__ -Wno-pass-failed -o $(BUILD_DIR)/tests/packets tests/packets.c
+	$(BUILD_DIR)/tests/packets
+
 # Loader program.
 loader: loader_utils
 	$(CC) $(INCS) $(FLAGS) $(FLAGS_LOADER) -o $(BUILD_LOADER_DIR)/$(LOADER_OUT) $(LOADER_OBJS) $(LOADER_DIR)/$(LOADER_SRC)
@@ -207,5 +218,5 @@ clean:
 	find $(BUILD_RULE_ADD_DIR) -type f ! -name ".*" -exec rm -f {} +
 	find $(BUILD_RULE_DEL_DIR) -type f ! -name ".*" -exec rm -f {} +
 
-.PHONY: all libxdp
+.PHONY: all libxdp test
 .DEFAULT: all

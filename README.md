@@ -115,6 +115,18 @@ make
 sudo make install
 ```
 
+### Regression Tests
+
+Run `make test` after initializing the submodules and installing the build
+dependencies. The tests use mocked BPF maps/helpers and require no root privileges
+or network attachment. AddressSanitizer and UndefinedBehaviorSanitizer are enabled
+by default; override `TEST_FLAGS` if your compiler does not support them.
+
+The tests cover configuration limits and failed reloads, address/port parsing,
+filter compaction and clearing, per-CPU buffers beyond 256 CPUs, and packet
+matching (including ICMPv6). They do not replace kernel BPF verifier or isolated
+interface tests.
+
 **Upgrade note:** rebuild and deploy the loader, rule tools, and XDP object
 together. The filter map layout includes explicit address-match flags, so existing
 pinned filter maps from older builds are not compatible. Restart the firewall
