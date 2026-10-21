@@ -73,6 +73,13 @@ int xdp_prog_main(struct xdp_md *ctx)
 
             return XDP_DROP;
         }
+
+        if (unlikely(iph->version != 4 || iph->ihl < 5 ||
+                     data + sizeof(struct ethhdr) + iph->ihl * 4 > data_end))
+        {
+            inc_pkt_stats(stats, STATS_TYPE_DROPPED);
+            return XDP_DROP;
+        }
     }
 #ifdef ENABLE_IPV6
     else
