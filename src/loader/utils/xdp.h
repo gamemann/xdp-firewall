@@ -22,7 +22,7 @@ int delete_filter(int map_filters, u32 idx);
 void delete_filters(int map_filters);
 
 int update_filter(int map_filters, filter_rule_cfg_t* filter, int idx);
-void update_filters(int map_filters, config__t *cfg);
+int update_filters(int map_filters, config__t *cfg);
 
 int pin_bpf_map(struct bpf_object* obj, const char* pin_dir, const char* map_name);
 int unpin_bpf_map(struct bpf_object* obj, const char* pin_dir, const char* map_name);

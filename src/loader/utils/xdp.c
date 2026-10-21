@@ -579,20 +579,26 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
  * @param map_filters The filter's BPF map FD.
  * @param cfg A pointer to the config structure.
  * 
- * @return Void
+ * @return 0 on success or -1 on failure.
  */
-void update_filters(int map_filters, config__t *cfg)
+int update_filters(int map_filters, config__t *cfg)
 {
-    int ret;
+    int ret = 0;
     int cur_idx = 0;
+    int cpus = libbpf_num_possible_cpus();
+    if (cpus < 1)
+    {
+        return -1;
+    }
+    filter_t *values = calloc(cpus, sizeof(*values));
+    if (!values)
+    {
+        return -1;
+    }
 
     // Add a filter to the filter maps.
-    for (int i = 0; i < cfg->filters_cnt; i++)
+    for (int i = 0; i < MAX_FILTERS; i++)
     {
-        // Delete previous rule from BPF map.
-        // We do this in the case rules were edited and were put out of order since the key doesn't uniquely map to a specific rule.
-        delete_filter(map_filters, i);
-
         filter_rule_cfg_t* filter = &cfg->filters[i];
 
         // Only insert set and enabled filters.
@@ -602,15 +608,32 @@ void update_filters(int map_filters, config__t *cfg)
         }
 
         // Attempt to update filter.
-        if ((ret = update_filter(map_filters, filter, cur_idx)) != 0)
+        if ((ret = update_filter_cpus(map_filters, filter, cur_idx, values, cpus)) != 0)
         {
             fprintf(stderr, "[WARNING] Failed to update filter #%d due to BPF update error (%d)...\n", cur_idx, ret);
 
-            continue;
+            break;
         }
 
         cur_idx++;
     }
+    if (ret != 0)
+    {
+        free(values);
+        return ret;
+    }
+    // Invalidate the old tail after shrinking or disabling rules. The kernel
+    // stops at this sentinel, so clearing every remaining slot is unnecessary.
+    if (cur_idx < MAX_FILTERS)
+    {
+        memset(values, 0, cpus * sizeof(*values));
+        if (bpf_map_update_elem(map_filters, &cur_idx, values, BPF_ANY) != 0)
+        {
+            ret = -1;
+        }
+    }
+    free(values);
+    return ret;
 }
 
 /**

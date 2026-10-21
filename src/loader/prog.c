@@ -394,7 +394,10 @@ int main(int argc, char *argv[])
     log_msg(&cfg, 2, 0, "Updating filters...");
 
     // Update filters.
-    update_filters(map_filters, &cfg);
+    if (update_filters(map_filters, &cfg) != 0)
+    {
+        log_msg(&cfg, 0, 1, "[ERROR] Failed to populate filter map.");
+    }
 #endif
 
 #ifdef ENABLE_IP_RANGE_DROP
@@ -473,7 +476,10 @@ int main(int argc, char *argv[])
 
 #ifdef ENABLE_FILTERS
                     // Update filters.
-                    update_filters(map_filters, &cfg);
+                    if (update_filters(map_filters, &cfg) != 0)
+                    {
+                        log_msg(&cfg, 0, 1, "[ERROR] Failed to update filter map.");
+                    }
 #endif
                 }
 
