@@ -481,10 +481,9 @@ int main(int argc, char *argv[])
                         log_msg(&cfg, 0, 1, "[ERROR] Failed to update filter map.");
                     }
 #endif
+                    last_config_check = conf_stat.st_mtime;
                 }
 
-                // Update last check timer
-                last_config_check = time(NULL);
             }
 
             // Update last updated variable.
