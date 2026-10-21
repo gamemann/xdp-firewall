@@ -159,6 +159,14 @@ int parse_cfg(config__t *cfg, const char* data, config_overrides_t* overrides)
         return EXIT_FAILURE;
     }
 
+    setting = config_lookup(&conf, "filters");
+    if (setting && (!config_setting_is_list(setting) || config_setting_length(setting) > MAX_FILTERS))
+    {
+        fprintf(stderr, "Filters must be a list with at most %d entries.\n", MAX_FILTERS);
+        config_destroy(&conf);
+        return EXIT_FAILURE;
+    }
+
     int verbose;
 
     if (config_lookup_int(&conf, "verbose", &verbose) == CONFIG_TRUE || (overrides && overrides->verbose > -1))
@@ -371,11 +379,11 @@ int parse_cfg(config__t *cfg, const char* data, config_overrides_t* overrides)
 
             config_setting_t* filter_cfg = config_setting_get_elem(setting, i);
 
-            if (filter == NULL || filter_cfg == NULL)
+            if (filter_cfg == NULL || config_setting_type(filter_cfg) != CONFIG_TYPE_GROUP)
             {
-                log_msg(cfg, 0, 1, "[WARNING] Failed to read filter rule at index #%d. 'filter' or 'filter_cfg' is NULL (make sure you didn't exceed the maximum filters allowed!)...");
-
-                continue;
+                fprintf(stderr, "Invalid filter at index #%d.\n", i + 1);
+                config_destroy(&conf);
+                return EXIT_FAILURE;
             }
 
             cfg->filters_cnt++;
