@@ -118,6 +118,7 @@ struct config_overrides
 } typedef config_overrides_t;
 
 void set_cfg_defaults(config__t *cfg);
+void free_cfg(config__t *cfg);
 void set_filter_defaults(filter_rule_cfg_t* filter);
 
 void print_cfg(config__t* cfg);

@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
     if (cli.list)
     {
         print_cfg(&cfg);
+        free_cfg(&cfg);
 
         return EXIT_SUCCESS;
     }
@@ -543,6 +544,7 @@ int main(int argc, char *argv[])
     xdp_program__close(prog);
 
     log_msg(&cfg, 1, 0, "Exiting.\n");
+    free_cfg(&cfg);
 
     // Exit program successfully.
     return EXIT_SUCCESS;

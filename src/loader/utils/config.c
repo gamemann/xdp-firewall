@@ -13,10 +13,12 @@
 int load_cfg(config__t *cfg, const char* cfg_file, int load_defaults, config_overrides_t* overrides)
 {
     int ret;
+    config__t replacement = {0};
+    config__t *target = load_defaults ? &replacement : cfg;
 
     if (load_defaults)
     {
-        set_cfg_defaults(cfg);
+        set_cfg_defaults(target);
     }
     
     FILE *file = NULL;
@@ -25,7 +27,7 @@ int load_cfg(config__t *cfg, const char* cfg_file, int load_defaults, config_ove
     if ((ret = open_cfg(&file, cfg_file)) != 0 || file == NULL)
     {
         fprintf(stderr, "Error opening config file.\n");
-        
+        free_cfg(&replacement);
         return ret;
     }
 
@@ -37,16 +39,19 @@ int load_cfg(config__t *cfg, const char* cfg_file, int load_defaults, config_ove
         fprintf(stderr, "Error reading config file.\n");
 
         close_cfg(file);
+        free_cfg(&replacement);
 
         return ret;
     }
 
     // Parse config.
-    if ((ret = parse_cfg(cfg, buffer, overrides)) != 0)
+    if ((ret = parse_cfg(target, buffer, overrides)) != 0)
     {
         fprintf(stderr, "Error parsing config file.\n");
 
         close_cfg(file);
+        free(buffer);
+        free_cfg(&replacement);
 
         return ret;
     }
@@ -56,10 +61,16 @@ int load_cfg(config__t *cfg, const char* cfg_file, int load_defaults, config_ove
     if ((ret = close_cfg(file)) != 0)
     {
         fprintf(stderr, "Error closing config file.\n");
+        free_cfg(&replacement);
 
         return ret;
     }
 
+    if (load_defaults)
+    {
+        free_cfg(cfg);
+        *cfg = replacement;
+    }
     return EXIT_SUCCESS;
 }
 
@@ -152,7 +163,7 @@ int parse_cfg(config__t *cfg, const char* data, config_overrides_t* overrides)
     // Attempt to read the config.
     if (config_read_string(&conf, data) == CONFIG_FALSE)
     {
-        log_msg(cfg, 0, 1, "Error from LibConfig when reading file - %s (Line %d)", config_error_text(&conf), config_error_line(&conf));
+        fprintf(stderr, "Error from LibConfig when reading file - %s (Line %d)\n", config_error_text(&conf), config_error_line(&conf));
 
         config_destroy(&conf);
 
@@ -1396,6 +1407,24 @@ void set_cfg_defaults(config__t* cfg)
 
         cfg->drop_ranges[i] = NULL;
     }
+}
+
+void free_cfg(config__t *cfg)
+{
+    free(cfg->log_file);
+    for (int i = 0; i < MAX_INTERFACES; i++)
+    {
+        free(cfg->interfaces[i]);
+    }
+    for (int i = 0; i < MAX_FILTERS; i++)
+    {
+        set_filter_defaults(&cfg->filters[i]);
+    }
+    for (int i = 0; i < MAX_IP_RANGES; i++)
+    {
+        free(cfg->drop_ranges[i]);
+    }
+    memset(cfg, 0, sizeof(*cfg));
 }
 
 /**
