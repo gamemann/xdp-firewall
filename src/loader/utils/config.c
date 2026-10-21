@@ -121,7 +121,10 @@ int close_cfg(FILE* file)
  */
 int read_cfg(FILE* file, char** buffer)
 {
-    fseek(file, 0, SEEK_END);
+    if (fseek(file, 0, SEEK_END) != 0)
+    {
+        return 1;
+    }
     long file_size = ftell(file);
     rewind(file);
 
@@ -138,6 +141,12 @@ int read_cfg(FILE* file, char** buffer)
     }
 
     size_t read = fread(*buffer, 1, file_size, file);
+    if (read != (size_t)file_size || ferror(file))
+    {
+        free(*buffer);
+        *buffer = NULL;
+        return 1;
+    }
     (*buffer)[read] = '\0';
 
     return 0;
