@@ -237,6 +237,8 @@ int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
         return -1;
     }
     filter_t filter = {0};
+    filter.action = 1;
+    filter.block_time = 1;
 
     filter.set = filter_cfg->set;
 
