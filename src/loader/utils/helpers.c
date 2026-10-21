@@ -104,6 +104,9 @@ const char* get_protocol_str_by_id(int id)
         
         case IPPROTO_ICMP:
             return "ICMP";
+
+        case IPPROTO_ICMPV6:
+            return "ICMPv6";
     }
 
     return "N/A";
