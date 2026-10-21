@@ -233,6 +233,12 @@ int parse_cfg(config__t *cfg, const char* data, config_overrides_t* overrides)
 
     if (interfaces)
     {
+        for (int i = 0; i < MAX_INTERFACES; i++)
+        {
+            free(cfg->interfaces[i]);
+            cfg->interfaces[i] = NULL;
+        }
+        cfg->interfaces_cnt = 0;
         if (config_setting_is_list(interfaces))
         {
             for (int i = 0; i < config_setting_length(interfaces); i++)
@@ -249,19 +255,13 @@ int parse_cfg(config__t *cfg, const char* data, config_overrides_t* overrides)
                     continue;
                 }
 
-                if (cfg->interfaces[i])
+                if (cfg->interfaces_cnt == 0 && overrides && overrides->interface)
                 {
-                    free(cfg->interfaces[i]);
-                    cfg->interfaces[i] = NULL;
-                }
-
-                if (i == 0 && overrides && overrides->interface)
-                {
-                    cfg->interfaces[i] = strdup(overrides->interface);
+                    cfg->interfaces[cfg->interfaces_cnt] = strdup(overrides->interface);
                 }
                 else
                 {
-                    cfg->interfaces[i] = strdup(interface);
+                    cfg->interfaces[cfg->interfaces_cnt] = strdup(interface);
                 }
 
                 cfg->interfaces_cnt++;
@@ -384,6 +384,11 @@ int parse_cfg(config__t *cfg, const char* data, config_overrides_t* overrides)
 
     if (setting && config_setting_is_list(setting))
     {
+        cfg->filters_cnt = 0;
+        for (int i = 0; i < MAX_FILTERS; i++)
+        {
+            set_filter_defaults(&cfg->filters[i]);
+        }
         for (int i = 0; i < config_setting_length(setting); i++)
         {
             filter_rule_cfg_t* filter = &cfg->filters[i];
@@ -765,16 +770,14 @@ int parse_cfg(config__t *cfg, const char* data, config_overrides_t* overrides)
 
     if (setting && config_setting_is_list(setting))
     {
+        cfg->drop_ranges_cnt = 0;
+        for (int i = 0; i < MAX_IP_RANGES; i++)
+        {
+            free(cfg->drop_ranges[i]);
+            cfg->drop_ranges[i] = NULL;
+        }
         for (int i = 0; i < config_setting_length(setting) && i < MAX_IP_RANGES; i++)
         {
-            const char* range = cfg->drop_ranges[i];
-
-            if (cfg->drop_ranges[i])
-            {
-                free(cfg->drop_ranges[i]);
-                cfg->drop_ranges[i] = NULL;
-            }
-
             const char* new_range = config_setting_get_string_elem(setting, i);
 
             if (!new_range)
