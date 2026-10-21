@@ -415,7 +415,7 @@ int main(int argc, char *argv[])
     signal(SIGTERM, hdl_signal);
 
     // Receive CPU count for stats map parsing.
-    int cpus = get_nprocs_conf();
+    int cpus = libbpf_num_possible_cpus();
 
     log_msg(&cfg, 4, 0, "Retrieved %d CPUs on host.", cpus);
 
