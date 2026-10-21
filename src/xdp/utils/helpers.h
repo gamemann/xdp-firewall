@@ -25,7 +25,7 @@
 #define ntohl(x) ((__be32)___constant_swab32((x)))
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define htons(x) (x)
-#define ntohs(X) (x)
+#define ntohs(x) (x)
 #define htonl(x) (x)
 #define ntohl(x) (x)
 #endif
