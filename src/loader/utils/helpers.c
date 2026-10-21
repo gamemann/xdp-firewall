@@ -133,10 +133,13 @@ void print_tool_info()
  */
 u64 get_boot_nano_time()
 {
-    struct sysinfo sys;
-    sysinfo(&sys);
+    struct timespec now;
+    if (clock_gettime(CLOCK_MONOTONIC, &now) != 0)
+    {
+        return 0;
+    }
 
-    return sys.uptime * 1e9;
+    return (u64)now.tv_sec * NANO_TO_SEC + now.tv_nsec;
 }
 
 /**

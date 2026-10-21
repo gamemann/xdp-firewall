@@ -11,6 +11,7 @@
 #include <ctype.h>
 
 #include <sys/sysinfo.h>
+#include <time.h>
 #include <errno.h>
 
 struct ip_range
