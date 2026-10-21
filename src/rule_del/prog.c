@@ -234,12 +234,8 @@ int main(int argc, char *argv[])
                 return EXIT_FAILURE;
             }
 
-            u128 ip = 0;
-
-            for (int i = 0; i < 16; i++)
-            {
-                ip = (ip << 8) | addr.s6_addr[i];
-            }
+            u128 ip;
+            memcpy(&ip, &addr, sizeof(ip));
 
             if ((ret = delete_block6(map_block6, ip)) != 0)
             {
