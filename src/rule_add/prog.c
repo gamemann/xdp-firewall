@@ -359,6 +359,11 @@ int main(int argc, char *argv[])
         }
 
         // Set filter at index.
+        if (validate_filter(&new_filter) != 0)
+        {
+            fprintf(stderr, "Invalid filter address, port, or scalar value.\n");
+            return EXIT_FAILURE;
+        }
         cfg.filters[idx] = new_filter;
 
         // Update filters.

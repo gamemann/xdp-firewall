@@ -232,6 +232,10 @@ void delete_filters(int map_filters)
  */
 int update_filter(int map_filters, filter_rule_cfg_t* filter_cfg, int idx)
 {
+    if (validate_filter(filter_cfg) != 0)
+    {
+        return -1;
+    }
     filter_t filter = {0};
 
     filter.set = filter_cfg->set;

@@ -779,6 +779,71 @@ int parse_cfg(config__t *cfg, const char* data, config_overrides_t* overrides)
 
     config_destroy(&conf);
 
+    if (cfg->update_time < 0 || cfg->stdout_update_time <= 0 || cfg->stdout_update_time > 3600000)
+    {
+        fprintf(stderr, "Invalid update interval. stdout_update_time must be 1..3600000 ms.\n");
+        return EXIT_FAILURE;
+    }
+    for (int i = 0; i < cfg->filters_cnt; i++)
+    {
+        filter_rule_cfg_t *filter = &cfg->filters[i];
+        if (validate_filter(filter) != 0)
+        {
+            fprintf(stderr, "Invalid address, port, or scalar in filter #%d.\n", i + 1);
+            return EXIT_FAILURE;
+        }
+    }
+    for (int i = 0; i < MAX_IP_RANGES; i++)
+    {
+        if (cfg->drop_ranges[i] && !parse_ip_range(cfg->drop_ranges[i]).success)
+        {
+            fprintf(stderr, "Invalid IP drop range: %s\n", cfg->drop_ranges[i]);
+            return EXIT_FAILURE;
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+int validate_filter(const filter_rule_cfg_t *filter)
+{
+    struct in6_addr addr;
+    if ((filter->ip.src_ip && !parse_ip_range(filter->ip.src_ip).success) ||
+        (filter->ip.dst_ip && !parse_ip_range(filter->ip.dst_ip).success) ||
+        (filter->ip.src_ip6 && inet_pton(AF_INET6, filter->ip.src_ip6, &addr) != 1) ||
+        (filter->ip.dst_ip6 && inet_pton(AF_INET6, filter->ip.dst_ip6, &addr) != 1) ||
+        (filter->tcp.sport && !parse_port_range(filter->tcp.sport).success) ||
+        (filter->tcp.dport && !parse_port_range(filter->tcp.dport).success) ||
+        (filter->udp.sport && !parse_port_range(filter->udp.sport).success) ||
+        (filter->udp.dport && !parse_port_range(filter->udp.dport).success) ||
+        filter->action < -1 || filter->action > 1 ||
+        filter->enabled < -1 || filter->enabled > 1 ||
+        filter->log < -1 || filter->log > 1 ||
+        filter->tcp.enabled < -1 || filter->tcp.enabled > 1 ||
+        filter->udp.enabled < -1 || filter->udp.enabled > 1 ||
+        filter->icmp.enabled < -1 || filter->icmp.enabled > 1 ||
+        filter->tcp.urg < -1 || filter->tcp.urg > 1 ||
+        filter->tcp.ack < -1 || filter->tcp.ack > 1 ||
+        filter->tcp.rst < -1 || filter->tcp.rst > 1 ||
+        filter->tcp.psh < -1 || filter->tcp.psh > 1 ||
+        filter->tcp.syn < -1 || filter->tcp.syn > 1 ||
+        filter->tcp.fin < -1 || filter->tcp.fin > 1 ||
+        filter->tcp.ece < -1 || filter->tcp.ece > 1 ||
+        filter->tcp.cwr < -1 || filter->tcp.cwr > 1 ||
+        filter->block_time < -1 || filter->block_time > 65535 ||
+        filter->ip_pps < -1 || filter->ip_bps < -1 ||
+        filter->flow_pps < -1 || filter->flow_bps < -1 ||
+        filter->ip.min_ttl < -1 || filter->ip.min_ttl > 255 ||
+        filter->ip.max_ttl < -1 || filter->ip.max_ttl > 255 ||
+        filter->ip.tos < -1 || filter->ip.tos > 255 ||
+        filter->ip.min_len < -1 || filter->ip.min_len > 65535 ||
+        filter->ip.max_len < -1 || filter->ip.max_len > 65535 ||
+        filter->icmp.code < -1 || filter->icmp.code > 255 ||
+        filter->icmp.type < -1 || filter->icmp.type > 255 ||
+        (filter->ip.min_ttl > -1 && filter->ip.max_ttl > -1 && filter->ip.min_ttl > filter->ip.max_ttl) ||
+        (filter->ip.min_len > -1 && filter->ip.max_len > -1 && filter->ip.min_len > filter->ip.max_len))
+    {
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
 
