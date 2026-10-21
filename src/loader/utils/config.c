@@ -1241,10 +1241,14 @@ int save_cfg(config__t* cfg, const char* file_path)
 
     config_write(&conf, file);
 
-    fclose(file);
+    int failed = ferror(file);
+    if (fclose(file) != 0)
+    {
+        failed = 1;
+    }
     config_destroy(&conf);
 
-    return 0;
+    return failed;
 }
 
 /**
