@@ -13,7 +13,7 @@ while [[ $# -gt 0 ]]; do
     case $key in
         --libxdp)
             LIBXDP=1
-
+pkg install tsu
             shift
             ;;
 
